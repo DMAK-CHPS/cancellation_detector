@@ -292,7 +292,7 @@ void plot_d(void (*generator) (double* , double*, size_t), int (*detect) (double
 			}
 
 			for(unsigned int x = 0; x < 1000; x++){
-				fprintf(f,"%lf\n",  t[x]);
+				fprintf(f,"%d %lf\n", i,  t[x]);
 			}
 		}
 	}
@@ -318,7 +318,7 @@ void plot_f(void (*generator) (float* , float*, size_t), int (*detect) (float, f
 			}
 
 			for(unsigned int x = 0; x < 1000; x++){
-				fprintf(f,"%lf\n",  t[x]);
+				fprintf(f,"%d %lf\n", i, t[x]);
 			}
 		}
 	}
