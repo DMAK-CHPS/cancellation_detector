@@ -294,9 +294,6 @@ void plot_d(void (*generator) (double* , double*, size_t), int (*detect) (double
 			for(unsigned int x = 0; x < 1000; x++){
 				fprintf(f,"%lf\n",  t[x]);
 			}
-
-			sortd(t,1000);
-			double avg = (t[499]+t[500])/2.0;
 		}
 	}
 
@@ -323,9 +320,6 @@ void plot_f(void (*generator) (float* , float*, size_t), int (*detect) (float, f
 			for(unsigned int x = 0; x < 1000; x++){
 				fprintf(f,"%lf\n",  t[x]);
 			}
-
-			sortf(t,1000);
-			float avg = (t[499]+t[500])/2.0;
 		}
 	}
 
