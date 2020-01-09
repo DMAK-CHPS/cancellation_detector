@@ -45,6 +45,7 @@ static void print_float(float f)
 void cancell_generator_f(float *f1, float *f2, size_t size)
 {
 	std::uniform_int_distribution<int> b(0,1);
+	std::uniform_int_distribution<int> exp(0,4);
 
 	(*f1) = (*f2) = 1;
 
@@ -55,17 +56,21 @@ void cancell_generator_f(float *f1, float *f2, size_t size)
 		if(i <= size){
 			(*f1) += bit * f;
 			(*f2) += bit * f;
-		}else if(i == size+1){
-			(*f1) += 1 * f;
 		}else{
 			(*f1) += bit * f;
 		}
 	}
+
+	int e = exp(generator);
+
+	(*f1) *= pow(2,e);
+	(*f2) *= pow(2,e);
 }
 
 void cancell_generator_d(double *d1, double *d2, size_t size)
 {
 	std::uniform_int_distribution<int> b(0,1);
+	std::uniform_int_distribution<int> exp(0,4);
 
 	(*d1) = (*d2) = 1;
 
@@ -76,12 +81,15 @@ void cancell_generator_d(double *d1, double *d2, size_t size)
 		if(i <= size){
 			(*d1) += bit * f;
 			(*d2) += bit * f;
-		}else if(i == size+1){
-			(*d1) += 1 * f;
 		}else{
 			(*d1) += bit * f;
 		}
 	}
+
+	int e = exp(generator);
+
+	(*d1) *= pow(2,e);
+	(*d2) *= pow(2,e);
 }
 
 /**************************************************
@@ -173,7 +181,7 @@ void test_f(void (*generator) (float* , float*, size_t), int (*detect) (float, f
 
 			for(unsigned int x = 0; x < 1000; x++){
 				t[x] = true_val;
-				inexact(&t[x],detect(f1,f2));
+				inexact(&t[x],24-detect(f1,f2));
 			}
 			sortf(t,1000);
 			float avg = (t[499]+t[500])/2.0;
@@ -195,7 +203,7 @@ void test_d(void (*generator) (double* , double*, size_t), int (*detect) (double
 			double t[1000] = {}, true_val = d1 - d2;
 			for(unsigned int x = 0; x < 1000; x++){
 				t[x] = true_val;
-				inexact(&t[x],detect(d1,d2));
+				inexact(&t[x],53-detect(d1,d2));
 			}
 			sortd(t,1000);
 			double avg = (t[499]+t[500])/2.0;
@@ -209,11 +217,11 @@ void test_inexact_f(int (*inexact) (float*, int))
 {
 	FILE *f = fopen("dat/inexact_f.dat","wr");
 	
-	for(unsigned int i = 0; i <= 52; i++){
+	for(unsigned int i = 0; i <= 23; i++){
 		for(unsigned int x = 0; x < 1000; x++){
 			float f1 = 0;
-			inexact(&f1,i);
-			fprintf(f,"%d %la\n", i, f1 * pow(2,i)/i);
+			inexact(&f1,23-i);
+			fprintf(f,"%d %la\n", i, f1 * pow(2,24-i)/(24-i));
 		}
 	}
 
@@ -229,8 +237,8 @@ void test_inexact_d(int (*inexact) (double*, int))
 	for(unsigned int i = 0; i <= 52; i++){
 		for(unsigned int x = 0; x < 1000; x++){
 			double d1 = 0;
-			inexact(&d1,i);
-			fprintf(f,"%d %la\n", i, d1 * pow(2,i)/i);
+			inexact(&d1,52-i);
+			fprintf(f,"%d %la\n", i, d1 * pow(2,53-i)/(53-i));
 		}
 	}
 
@@ -280,20 +288,21 @@ void test_detect_d(void (*generator) (double* , double*, size_t), int (*detect) 
 void plot_d(void (*generator) (double* , double*, size_t), int (*detect) (double, double), int (*inexact) (double*, int))
 {
 	double d1 = 0, d2 = 0;
+	generator(&d1, &d2, 21);
 	FILE *f = fopen("dat/double.dat","wr");
 
 	for(unsigned int i = 0; i < 51; i++){
-		for(unsigned int j = 0; j < 10; j++){
-			generator(&d1, &d2, i);
-			double t[1000] = {}, true_val = d1 - d2;
-			for(unsigned int x = 0; x < 1000; x++){
-				t[x] = true_val;
-				inexact(&t[x],detect(d1,d2));
+		double t[1000] = {}, true_val = d1 - d2;
+		for(unsigned int x = 0; x < 1000; x++){
+			t[x] = true_val;
+			if(detect(d1,d2) <= i){
+				inexact(&t[x],53-i);
 			}
+			fprintf(f,"%d %la\n", i, true_val);
+		}
 
-			for(unsigned int x = 0; x < 1000; x++){
-				fprintf(f,"%d %lf\n", i,  t[x]);
-			}
+		for(unsigned int x = 0; x < 1000; x++){
+			fprintf(f,"%d %la\n", i,  t[x]);
 		}
 	}
 
@@ -305,21 +314,21 @@ void plot_d(void (*generator) (double* , double*, size_t), int (*detect) (double
 void plot_f(void (*generator) (float* , float*, size_t), int (*detect) (float, float), int (*inexact) (float*, int))
 {
 	float f1 = 0, f2 = 0;
+	generator(&f1, &f2, 11);
 	FILE *f = fopen("dat/float.dat","wr");
 
 	for(unsigned int i = 0; i < 22; i++){
-		for(unsigned int j = 0; j < 10; j++){
-			generator(&f1, &f2, i);
-			float t[1000] = {}, true_val = f1-f2;
-
-			for(unsigned int x = 0; x < 1000; x++){
-				t[x] = true_val;
-				inexact(&t[x],detect(f1,f2));
+		float t[1000] = {}, true_val = f1-f2;
+		for(unsigned int x = 0; x < 1000; x++){
+			t[x] = true_val;
+			if(detect(f1,f2) <= i){
+				inexact(&t[x],24-i);
 			}
+			fprintf(f,"%d %la\n", i, true_val);
+		}
 
-			for(unsigned int x = 0; x < 1000; x++){
-				fprintf(f,"%d %lf\n", i, t[x]);
-			}
+		for(unsigned int x = 0; x < 1000; x++){
+			fprintf(f,"%d %la\n", i, t[x]);
 		}
 	}
 
@@ -328,8 +337,35 @@ void plot_f(void (*generator) (float* , float*, size_t), int (*detect) (float, f
 	system("gnuplot dat/plot_float.sh");
 }
 
+/**************************************************
+*				Création de reel	  	  		  *
+**************************************************/
+float create_float(int signe, int exposant, int *mantisse)
+{
+	float f = 1;
+
+	for(unsigned int i = 0; i < 23; i++){
+		f += (1.0/pow(2,i)) * mantisse[i];
+	}
+
+	return signe * f * pow(2,exposant);
+}
+
+double create_double(int signe, int exposant, int *mantisse)
+{
+	double d = 1;
+
+	for(unsigned int i = 0; i < 52; i++){
+		d += (1.0/pow(2,i)) * mantisse[i];
+	}
+
+	return signe * d * pow(2,exposant);
+}
+
+
 int main(int argc, char const *argv[])
 {
+
 	test_inexact_f(_mca_inexactd);
 
 	test_inexact_d(_mca_inexactq);
@@ -337,14 +373,54 @@ int main(int argc, char const *argv[])
 	test_detect_f(cancell_generator_f, cancell_float);
 
 	test_detect_d(cancell_generator_d, cancell_double);
-/*
+
 	test_f(cancell_generator_f, cancell_float, _mca_inexactd);
 
 	test_d(cancell_generator_d, cancell_double, _mca_inexactq);
-*/
+
 	plot_f(cancell_generator_f, cancell_float, _mca_inexactd);
 
 	plot_d(cancell_generator_d, cancell_double, _mca_inexactq);
 
+
+/*
+	float f1 = 0;
+	float f2 = 0;
+	
+	for(unsigned int i = 0; i < 23; i++){
+		do{
+			cancell_generator_f(&f1,&f2,i);
+		}while(cancell_float(f1,f2) != i+1);
+		
+		printf("\t %d \n", i ,cancell_float(f1,f2));
+		printf("\t%a,\t\t// ",f1); print_float(f1);
+		printf("\t%a,\t\t// ",f2); print_float(f2);
+		printf("\t%a,\t\t// ",f1-f2); print_float(f1-f2);
+	}
+
+	double d1 = 0;
+	double d2 = 0;
+	
+	for(unsigned int i = 0; i < 52; i++){
+		do{
+			cancell_generator_d(&d1,&d2,i);
+		}while(cancell_double(d1,d2) != i+1);
+		
+		printf("\t %d \n", i ,cancell_double(d1,d2));
+		printf("\t%a,\t\t// ",d1); print_double(d1);
+		printf("\t%a,\t\t// ",d2); print_double(d2);
+		printf("\t%a,\t\t// ",d1-d2); print_double(d1-d2);
+	}
+
+	double t[1000] = {}, true_val = d1 - d2;
+	for(unsigned int x = 0; x < 1000; x++){
+		t[x] = true_val;
+		_mca_inexactq(&t[x],cancell_double(d1,d2));
+	}
+	sortd(t,1000);
+	double avg = (t[499]+t[500])/2.0;
+
+	printf("Exact: %.3la | Approximation: %.3la | Plus petite valeur: %la | Plus grande valeur: %la\n", true_val, avg, t[0], t[999]);
+*/
 	return 0;
 }
