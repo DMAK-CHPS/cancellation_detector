@@ -179,6 +179,29 @@ int cancell_double_v4(double d1, double d2)
 	return max(ea,eb) - er;
 }
 
+
+int cancell_float_v5(float f1, float f2)
+{
+	unsigned int a = *((unsigned int*) &f1);
+	unsigned int b = *((unsigned int*) &f2);
+
+	a = bit_a_b(a,0,22);
+	b = bit_a_b(b,0,22);
+
+	return 23 - log2(a-b);
+} 
+
+int cancell_double_v5(double d1, double d2)
+{
+	unsigned long long int a = *((unsigned long long int*) &d1);
+	unsigned long long int b = *((unsigned long long int*) &d2);
+
+	a = bit_a_b(a,0,51);
+	b = bit_a_b(b,0,51);
+
+	return 52 - log2(a-b);
+} 
+
 /**************************************************
 *			Generateur de cancellation		  	  *
 **************************************************/
@@ -283,7 +306,7 @@ void test_detect_f(const char* title, int (*f) (float f1, float f2), unsigned in
 		size = rand_a_b(0,23);
 		cancell_generator_f(&f1, &f2, size);
 		t[cpt] = f(f1,f2);
-		if(t[cpt] <= size){
+		if(t[cpt] < size){
 			/*
 			print_float(f1);
 			print_float(f2);
@@ -316,13 +339,14 @@ void test_detect_q(const char* title, int (*f) (double d1, double d2), unsigned 
 		size = rand_a_b(0,52);
 		cancell_generator_d(&d1, &d2, size);
 		t[cpt] = f(d1,d2);
-		if(t[cpt] <= size){
-/*			print_float(f1);
-			print_float(f2);
-			print_float(f1-f2);
+		if(t[cpt] < size){
+			/*
+			print_double(d1);
+			print_double(d2);
+			print_double(d1-d2);
 			printf("\n");
-*/
 			t[cpt] = abs(t[cpt] - size);
+			*/
 			sum += t[cpt];
 			cpt++; 
 		}
@@ -399,21 +423,25 @@ int main(int argc, char const *argv[])
 	test_detect_f("Version 2 float", cancell_float_v2, 1000);
 	test_detect_f("Version 3 float", cancell_float_v3, 1000);
 	test_detect_f("Version verrou float", cancell_float_v4, 1000);
+	test_detect_f("Version bit float", cancell_float_v5, 1000);
 
 	test_detect_q("Version original double", cancell_double_v1, 1000);
 	test_detect_q("Version 2 double", cancell_double_v2, 1000);
 	test_detect_q("Version 3 double", cancell_double_v3, 1000);
 	test_detect_q("Version verrou double", cancell_double_v4, 1000);
+	test_detect_q("Version bit double", cancell_double_v5, 1000);
 
 	test_perf_f("Version original float", cancell_float_v1, 1000);
 	test_perf_f("Version 2 float", cancell_float_v2, 1000);
 	test_perf_f("Version 3 float", cancell_float_v3, 1000);
 	test_perf_f("Version verrou float", cancell_float_v4, 1000);
+	test_perf_f("Version bit float", cancell_float_v5, 1000);
 
 	test_perf_q("Version original double", cancell_double_v1, 1000);
 	test_perf_q("Version 2 double", cancell_double_v2, 1000);
 	test_perf_q("Version 3 double", cancell_double_v3, 1000);
 	test_perf_q("Version verrou double", cancell_double_v4, 1000);
+	test_perf_q("Version bit double", cancell_double_v5, 1000);
 
 	return 0;
 }

@@ -42,6 +42,22 @@ static void print_float(float f)
 	printf("\n");
 }
 
+static void print_u64(u_64 u)
+{
+	for(int i = 63; i >= 0; i--)
+		(i == 63 || i == 52) ? printf("%lld ", bit(u,i)) : printf("%lld", bit(u,i));
+
+	printf("\n");
+}
+
+static void print_u32(u_32 u)
+{
+	for(int i = 31; i >= 0; i--)
+		(i == 31 || i == 23) ? printf("%d ", bit(u,i)) : printf("%d", bit(u,i));
+
+	printf("\n");
+}
+
 void cancell_generator_f(float *f1, float *f2, size_t size)
 {
 	std::uniform_int_distribution<int> b(0,1);
@@ -365,7 +381,33 @@ double create_double(int signe, int exposant, int *mantisse)
 
 int main(int argc, char const *argv[])
 {
+	float a = 6.565, b = 6.5649;
+	int ea, eb, eab;
 
+	frexp(a,&ea);
+	frexp(b,&eb);
+	frexp(a-b,&eab);
+
+
+	printf("%f\t",a); print_float(a); printf("\t%d\n", ea);
+	printf("%f\t",b); print_float(b); printf("\t%d\n", eb);
+	printf("%f\t",a-b); print_float(a-b); printf("\t%d\n", eab);
+	printf("%d\n",cancell_float(a,b));
+
+
+	unsigned int d_a = *((unsigned int*) &a);
+	unsigned int d_b = *((unsigned int*) &b);
+
+	// on peut faire l'operation apres avoir fait la soustraction des deux flottants
+
+	print_u32(bit_a_b(d_a,0,22));
+	print_u32(bit_a_b(d_b,0,22));
+	print_u32(bit_a_b(d_a - d_b,0,22));
+	printf("%d\n", (int)log2(bit_a_b(d_a - d_b,0,22))+1);
+	printf("%d\n", 23 - (int)log2(bit_a_b(d_a - d_b,0,22)));
+
+
+/*
 	test_inexact_f(_mca_inexactd);
 
 	test_inexact_d(_mca_inexactq);
